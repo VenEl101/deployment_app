@@ -81,7 +81,7 @@ DATABASES = {
         'NAME': "deployment_app",
         'USER': "postgres",
         'PASSWORD': "newpassword",
-        'HOST': "localhost",
+        "HOST": "127.0.0.1",
         'PORT': 5432,
     }
 }
