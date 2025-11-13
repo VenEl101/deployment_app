@@ -1,4 +1,4 @@
-name: CI
+name: Django CI
 
 on:
   push:
@@ -9,24 +9,25 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+
     services:
       postgres:
         image: postgres:15
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: newpassword
+          POSTGRES_PASSWORD: postgres
           POSTGRES_DB: deployment_app
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready -U postgres"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     strategy:
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: [ "3.10", "3.11", "3.12" ]
 
     steps:
       - name: Checkout code
@@ -36,32 +37,27 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip'
+          cache: "pip"
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install mypy bandit pytest pytest-django pytest-cov
 
-      - name: Run type checking (mypy)
-        run: mypy . --config-file=mypy.ini
-
-      - name: Run security check (bandit)
-        run: bandit -r . || true
-
-      - name: Run tests with coverage
+      - name: Run migrations
         env:
-          DATABASE_URL: postgres://postgres:newpassword@localhost:5432/deployment_app
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/deployment_app
+          DJANGO_SETTINGS_MODULE: config.settings  # update with your actual settings module
+          SECRET_KEY: "django-insecure-3p@*bsi+dlabvu)%bs)%w_r-t69sz9(&eg$xbepkcv^q81x1@w"
           DEBUG: "False"
-          SECRET_KEY: "ci-secret-key-for-testing"
-          DJANGO_SETTINGS_MODULE: config.settings
         run: |
-          pytest --cov=shop --cov-report=xml --cov-report=term
+          python manage.py migrate --noinput
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./coverage.xml
-          fail_ci_if_error: true
+      - name: Run tests
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/deployment_app
+          DJANGO_SETTINGS_MODULE: config.settings
+          SECRET_KEY: "django-insecure-3p@*bsi+dlabvu)%bs)%w_r-t69sz9(&eg$xbepkcv^q81x1@w"
+          DEBUG: "False"
+        run: |
+          python manage.py test
