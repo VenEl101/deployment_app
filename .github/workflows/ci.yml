@@ -45,7 +45,7 @@ jobs:
           pip install mypy bandit pytest pytest-django pytest-cov
 
       - name: Run type checking (mypy)
-        run: mypy .
+        run: mypy . --config-file=mypy.ini
 
       - name: Run security check (bandit)
         run: bandit -r . || true
