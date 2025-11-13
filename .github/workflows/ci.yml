@@ -44,26 +44,45 @@ jobs:
           pip install poetry
           poetry install --with dev,test
 
+      # -----------------------------------------------------------------
+      # LINTING
+      # -----------------------------------------------------------------
       - name: Run linting (flake8)
         run: |
           poetry run flake8 .
 
+      # -----------------------------------------------------------------
+      # TYPE CHECKING
+      # -----------------------------------------------------------------
       - name: Run type checking (mypy)
         run: |
           poetry run mypy .
 
+      # -----------------------------------------------------------------
+      # SECURITY SCAN
+      # -----------------------------------------------------------------
       - name: Run security check (bandit)
         run: |
           poetry run bandit -r . -c pyproject.toml || true
 
+      # -----------------------------------------------------------------
+      # TESTS + COVERAGE
+      # -----------------------------------------------------------------
       - name: Run tests with coverage
         env:
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/deployment_app
+          # DB URL must match the service credentials above
+          DATABASE_URL: postgres://postgres:newpassword@localhost:5432/deployment_app
           DEBUG: "False"
           SECRET_KEY: "ci-secret-key-for-testing"
+          # Tell pytest-django where the settings live
+          DJANGO_SETTINGS_MODULE: config.settings
         run: |
-          poetry run pytest --cov=your_app_name --cov-report=xml --cov-report=term
+          # `--cov=shop` → only the *shop* app is measured
+          poetry run pytest --cov=shop --cov-report=xml --cov-report=term
 
+      # -----------------------------------------------------------------
+      # UPLOAD COVERAGE
+      # -----------------------------------------------------------------
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
