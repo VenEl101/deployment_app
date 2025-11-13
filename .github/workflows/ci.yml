@@ -44,8 +44,11 @@ jobs:
           pip install -r requirements.txt
           pip install flake8 mypy bandit pytest pytest-django pytest-cov
 
+      - name: Check code formatting (Black)
+        run: black --check --diff .
+
       - name: Run linting (flake8)
-        run: flake8 .
+        run: flake8 . --config=.flake8
 
       - name: Run type checking (mypy)
         run: mypy .

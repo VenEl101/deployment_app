@@ -9,7 +9,6 @@ logs
 .venv/
 venv/
 ENV/
-/.github
 
 # Ignore all migration files but keep __init__.py
 */migrations/*
@@ -44,23 +43,8 @@ coverage.xml
 .hypothesis/
 
 # Packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-.github
+
+
 # Jupyter
 *.ipynb_checkpoints
 eslatmalar.txt
